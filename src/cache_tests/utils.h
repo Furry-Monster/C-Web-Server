@@ -2,9 +2,9 @@
 #define _UTILS_H_
 
 #include "../cache.h"
+#include <stddef.h>
 
-int check_strings(char *input, char *expected)
-{
+inline int check_strings(char *input, char *expected) {
   for (; *input == *expected; input++, expected++) {
     if (*input == '\0') {
       return 0;
@@ -14,8 +14,8 @@ int check_strings(char *input, char *expected)
   return *input - *expected;
 }
 
-int check_cache_entries(struct cache_entry *input, struct cache_entry *expected)
-{ 
+inline int check_cache_entries(struct cache_entry *input,
+                               struct cache_entry *expected) {
   if (input == NULL) {
     return 1;
   }
@@ -28,7 +28,7 @@ int check_cache_entries(struct cache_entry *input, struct cache_entry *expected)
     return 1;
   }
 
-  if (check_strings(input->content, expected->content) != 0) {
+  if (check_strings((char *)input->content, (char *)expected->content) != 0) {
     return 1;
   }
 
