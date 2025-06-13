@@ -10,7 +10,7 @@ int check_strings(char *input, char *expected)
       return 0;
     }
   }
-    
+
   return *input - *expected;
 }
 
@@ -19,11 +19,11 @@ int check_cache_entries(struct cache_entry *input, struct cache_entry *expected)
   if (input == NULL) {
     return 1;
   }
-  
+
   if (check_strings(input->path, expected->path) != 0) {
     return 1;
   }
-  
+
   if (check_strings(input->content_type, expected->content_type) != 0) {
     return 1;
   }
