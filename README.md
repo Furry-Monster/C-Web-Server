@@ -7,9 +7,9 @@ What you need to write:
 * HTTP request parser
 * HTTP response builder
 * LRU cache
+
   * Doubly linked list (some functionality provided)
   * Use existing hashtable functionality (below)
-
 * Your code will interface with the existing code. Understanding the existing
   code is an expected part of this challenge.
 
@@ -72,7 +72,7 @@ _Read through all the main and stretch goals before writing any code to get an o
 1. Implement `send_response()`.
 
    This function is responsible for formatting all the pieces that make up an HTTP response into the proper format that clients expect. In other words, it needs to build a complete HTTP response with the given parameters. It should write the response to the string in the `response` variable.
-   
+
    The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to
    send out over the wire.
 
@@ -85,9 +85,9 @@ _Read through all the main and stretch goals before writing any code to get an o
    > The HTTP `Content-Length` header only includes the length of the body, not
    > the header. But the `response_length` variable used by `send()` is the
    > total length of both header and body.
+   >
 
-   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function and passing it the `newfd` socket (make sure you do this _after_ the `newfd` socket has been initialized by the `accept` system call in the while loop). If the client receives the 404 response when you make a request to the server, then that's a pretty clear indication that your `send_response` is working. 
-
+   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function and passing it the `newfd` socket (make sure you do this _after_ the `newfd` socket has been initialized by the `accept` system call in the while loop). If the client receives the 404 response when you make a request to the server, then that's a pretty clear indication that your `send_response` is working.
 2. Examine `handle_http_request()` in the file `server.c`.
 
    You'll want to parse the first line of the HTTP request header to see if this is a `GET` or `POST` request, and to see what the path is. You'll use this information to decide which handler function to call.
@@ -105,10 +105,10 @@ _Read through all the main and stretch goals before writing any code to get an o
 
    > Note: you can't `switch()` on strings in C since it will compare the string pointer values instead of the string contents. You have to use an
    > `if`-`else` block with `strcmp()` to get the job done.
+   >
 
    If you can't find an appropriate handler, call `resp_404()` instead to give
    them a "404 Not Found" response.
-
 3. Implement the `get_d20()` handler. This will call `send_response()`.
 
    See above at the beginning of the assignment for what `get_d20()` should pass to `send_response()`.
@@ -120,7 +120,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    > The `fd` variable that is passed widely around to all the functions holds a _file descriptor_. It's just a number use to represent an open
    > communications path. Usually they point to regular files on disk, but in
    > this case it points to an open _socket_ network connection. All of the code to create and use `fd` has been written already, but we still need to pass it around to the points it is used.
-
+   >
 4. Implement arbitrary file serving.
 
    Any other URL should map to the `serverroot` directory and files that lie within. For example:
@@ -162,7 +162,6 @@ The hashtable code is already written and can be found in `hashtable.c`.
      * Remove that same entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
      * Free the cache entry.
      * Ensure the size counter for the number of entries in the cache is correct.
-
 2. Implement `cache_get()` in `cache.c`.
 
    Algorithm:
@@ -171,7 +170,6 @@ The hashtable code is already written and can be found in `hashtable.c`.
    * If not found, return `NULL`.
    * Move the cache entry to the head of the doubly-linked list.
    * Return the cache entry pointer.
-
 3. Add caching functionality to `server.c`.
 
    When a file is requested, first check to see if the path to the file is in
@@ -185,7 +183,7 @@ The hashtable code is already written and can be found in `hashtable.c`.
    * Store it in the cache
    * Serve it
 
-There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation. 
+There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation.
 
 ### Stretch Goals
 
@@ -193,7 +191,6 @@ There's a set of unit tests included to ensure that your cache implementation is
 
 1. Implement `find_start_of_body()` to locate the start of the HTTP request body
    (just after the header).
-
 2. Implement the `post_save()` handler. Modify the main loop to pass the body
    into it. Have this handler write the file to disk. Hint: `open()`, `write()`,
    `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used,
@@ -247,4 +244,3 @@ When a new connection comes in, launch a thread to handle it.
 Be sure to lock the cache when a thread accesses it so the threads don't step on each other's toes and corrupt the cache.
 
 Also have thread cleanup handlers to handle threads that have died.
-

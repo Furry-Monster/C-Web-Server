@@ -4,7 +4,7 @@
 #include "../cache.h"
 #include <stddef.h>
 
-inline int check_strings(char *input, char *expected) {
+static inline int check_strings(char *input, char *expected) {
   for (; *input == *expected; input++, expected++) {
     if (*input == '\0') {
       return 0;
@@ -14,7 +14,7 @@ inline int check_strings(char *input, char *expected) {
   return *input - *expected;
 }
 
-inline int check_cache_entries(struct cache_entry *input,
+static inline int check_cache_entries(struct cache_entry *input,
                                struct cache_entry *expected) {
   if (input == NULL) {
     return 1;
