@@ -142,8 +142,15 @@ void get_file(int fd, struct cache *cache, char *request_path) {
   if (strcmp(request_path, "/") == 0)
     sprintf(request_path, "%s", "/index.html");
 
-  // Fetch file from root dir
+  // Fetch file from root dir, but firstly , let's check cache.
   snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+  struct cache_entry *entry = cache_get(cache, filepath);
+  if(entry != NULL){
+    // if cache hit
+    send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    return;
+  }
+
   filedata = file_load(filepath);
 
   // if not found , respond 404
@@ -154,6 +161,9 @@ void get_file(int fd, struct cache *cache, char *request_path) {
 
   send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data,
                 filedata->size);
+
+  // cache not hit but file accessed, we add it into cache
+  cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
 
   file_free(filedata);
 }
@@ -166,6 +176,7 @@ void get_file(int fd, struct cache *cache, char *request_path) {
  */
 char *find_start_of_body(char *header) {
   // TODO IMPLEMENT ME! (Stretch)
+
 }
 
 /**
