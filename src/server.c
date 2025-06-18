@@ -186,25 +186,23 @@ void get_file(int fd, struct cache *cache, char *request_path) {
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-const char *find_start_of_body(char *request, int cpy) {
+const char *find_start_of_body(char *request) {
   const char *body_start = strstr(request, "\r\n\r\n");
   if (body_start == NULL)
     return NULL;
   body_start += 4; // skip /r/n/r/n sequence
 
-  if (!cpy)
-    return body_start;
-
   size_t bodylen = strlen(body_start);
 
   // copy to new block
   char *body = malloc(bodylen + 1);
+  memset(body, 0, bodylen);
   if (body == NULL) {
     perror("Memory allocate failed");
     return NULL;
   }
 
-  memcpy(body, body_start, bodylen + 1);
+  memcpy(body, body_start, bodylen);
   return body;
 }
 
@@ -258,9 +256,10 @@ void handle_http_request(int fd, struct cache *cache) {
   char request[request_buffer_size];
   char opr[oprlen];
   char path[pathlen];
+  perror(request);
 
   // Read request
-  int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+  int bytes_recvd = recv(fd, request, request_buffer_size, 0);
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -282,7 +281,7 @@ void handle_http_request(int fd, struct cache *cache) {
   }
   // (Stretch) If POST, handle the post request
   else if (strcmp(opr, "POST") == 0) {
-    post_save(fd, find_start_of_body(request, 1), cache, path);
+    post_save(fd, find_start_of_body(request), cache, path);
   } else {
     resp_404(fd);
   }

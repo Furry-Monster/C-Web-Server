@@ -15,10 +15,11 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content,
 
   // allocate this block
   struct cache_entry *entry = malloc(sizeof *entry);
+
   // initialize this block
   memset(entry, 0, sizeof *entry);
-  // copy data from ptrs
-  // using size parameter "strlen(...)+1" for char '\0'
+
+  // copy data from ptrs , using size parameter "strlen(...)+1" for char '\0'
   entry->path = malloc(strlen(path) + 1);
   entry->content_type = malloc(strlen(content_type) + 1);
   entry->content = malloc(content_length);
@@ -32,6 +33,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content,
   memcpy(entry->content_type, content_type, strlen(content_type) + 1);
   memcpy(entry->content, content, content_length);
   entry->content_length = content_length;
+  entry->dirty = 0; // this is not dirty at begining
 
   return entry;
 }
@@ -150,23 +152,41 @@ void cache_free(struct cache *cache) {
  * Store an entry in the cache
  *
  * This will also remove the least-recently-used items as necessary.
- *
- * NOTE: doesn't check for duplicate cache entries
  */
 void cache_put(struct cache *cache, char *path, char *content_type,
                void *content, int content_length) {
   if (cache == NULL || path == NULL || content_type == NULL || content == NULL)
     return;
 
-  struct cache_entry *entry =
-      alloc_entry(path, content_type, content, content_length);
-  if (entry == NULL)
-    return;
+  // is the required cache entry exsisting ?
+  struct cache_entry *existing = cache_get(cache, path);
+  if (existing) {
+    // if YES , check the dirty tag
+    if (existing->dirty) {
+      // if DIRTY , this should really be update
+      free(existing->content);
+      existing->content = malloc(content_length);
+      memset(existing->content, 0, content_length);
+      memcpy(existing->content, content, content_length);
+      existing->content_length = content_length;
+      existing->dirty = 0;
+    }
+    // if NOT ,
+    // we even don't need to put it on head
+    // cause it's already done by cache_get called before
+  } else {
+    // if NO , let's store it in cache
+    struct cache_entry *entry =
+        alloc_entry(path, content_type, content, content_length);
+    if (entry == NULL)
+      return;
 
-  dllist_insert_head(cache, entry);
-  hashtable_put(cache->index, path, entry);
-  ++(cache->cur_size);
+    dllist_insert_head(cache, entry);
+    hashtable_put(cache->index, path, entry);
+    ++(cache->cur_size);
+  }
 
+  // if cache is full, remove using LRU
   if (cache->cur_size > cache->max_size) {
     struct cache_entry *removed = dllist_remove_tail(cache);
     hashtable_delete(cache->index, removed->path);

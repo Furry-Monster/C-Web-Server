@@ -142,7 +142,8 @@ int file_modify(struct file_data *filedata, const void *data) {
   size_t data_len = strlen(data);
 
   // allocate buffer
-  buffer = malloc(data_len);
+  buffer = malloc(data_len + 1);
+  memset(buffer, 0, data_len + 1);
   if (buffer == NULL)
     return 0;
 
