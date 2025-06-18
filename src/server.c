@@ -56,6 +56,9 @@ int send_response(int fd, char *header, char *content_type, void *body,
   char response[max_response_size];
   char date[time_str_size];
 
+  memset(response, 0, max_response_size);
+  memset(date, 0, time_str_size);
+
   // Load time info
   time_t rawtime = time(NULL);
   struct tm *tp = localtime(&rawtime);
@@ -117,9 +120,10 @@ void resp_404(int fd) {
   filedata = file_load(filepath);
 
   if (filedata == NULL) {
-    // TODO: make this non-fatal
+    char *ise_str = "Server crushed...";
+    send_response(fd, "HTTP/1.1 500 Internal Server Error", "text/plain",
+                  ise_str, strlen(ise_str));
     fprintf(stderr, "cannot find system 404 file\n");
-    exit(3);
   }
 
   mime_type = mime_type_get(filepath);
@@ -152,6 +156,7 @@ void get_file(int fd, struct cache *cache, char *request_path) {
     sprintf(request_path, "%s", "/index.html");
 
   // Fetch file from root dir, but firstly , let's check cache.
+  memset(filepath, 0, 4096);
   snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
   struct cache_entry *entry = cache_get(cache, filepath);
   if (entry != NULL) {
@@ -219,6 +224,7 @@ void post_save(int fd, const void *body, struct cache *cache,
   char *resp_body = "{\"status\":\"ok\"}";
 
   // find the server root path first.
+  memset(filepath, 0, 4096);
   snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
 
   // modify file

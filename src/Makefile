@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -g -O0 -ggdb -Wall -Wextra
+CFLAGS= -g -O0 -ggdb -Wall -Wextra 
 
 OBJS=server.o net.o file.o mime.o cache.o hashtable.o llist.o
 
