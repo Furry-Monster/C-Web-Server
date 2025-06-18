@@ -28,7 +28,6 @@ struct file_data *file_load(char *filename) {
   // Open the file for reading
   FILE *fp = fopen(filename, "rb");
   if (fp == NULL) {
-    fclose(fp);
     return NULL;
   }
 
@@ -99,7 +98,6 @@ int file_save(struct file_data *filedata) {
   // open up the file
   FILE *fp = fopen(filedata->name, "wb");
   if (fp == NULL) {
-    fclose(fp);
     return 0;
   }
 

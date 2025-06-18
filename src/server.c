@@ -135,6 +135,7 @@ void resp_404(int fd) {
  */
 void bad_req_resp(int fd) {
   char *str = "Wtf is this shit request";
+
   send_response(fd, "HTTP/1.1 400 Bad Request", "text/plain", str, strlen(str));
 }
 
@@ -207,6 +208,10 @@ const char *find_start_of_body(char *request, int cpy) {
   return body;
 }
 
+/**
+ * Save to default file "rubbish.txt"
+ *
+ */
 void post_save(int fd, const void *body, struct cache *cache,
                char *request_path) {
   char filepath[4096];
@@ -223,10 +228,12 @@ void post_save(int fd, const void *body, struct cache *cache,
     return;
   }
 
+  // modify file
   size_t bodylen = strlen(body);
   memcpy(filedata->data, body, bodylen);
   filedata->size = bodylen;
 
+  // try to save file
   if (!file_save(filedata)) {
     file_free(filedata);
     return;
@@ -277,6 +284,7 @@ void handle_http_request(int fd, struct cache *cache) {
   }
   // (Stretch) If POST, handle the post request
   else if (strcmp(opr, "POST") == 0) {
+    post_save(fd, find_start_of_body(request, 1), cache, path);
   } else {
     resp_404(fd);
   }
