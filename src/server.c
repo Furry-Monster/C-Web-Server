@@ -196,13 +196,14 @@ const char *find_start_of_body(char *request) {
 
   // copy to new block
   char *body = malloc(bodylen + 1);
-  memset(body, 0, bodylen);
+  memset(body, 0, bodylen + 1);
   if (body == NULL) {
     perror("Memory allocate failed");
     return NULL;
   }
 
   memcpy(body, body_start, bodylen);
+  perror(body);
   return body;
 }
 
@@ -256,10 +257,13 @@ void handle_http_request(int fd, struct cache *cache) {
   char request[request_buffer_size];
   char opr[oprlen];
   char path[pathlen];
-  perror(request);
+
+  memset(request, 0, request_buffer_size);
+  memset(opr, 0, oprlen);
+  memset(path, 0, pathlen);
 
   // Read request
-  int bytes_recvd = recv(fd, request, request_buffer_size, 0);
+  int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
   if (bytes_recvd < 0) {
     perror("recv");
