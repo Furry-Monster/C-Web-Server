@@ -145,9 +145,10 @@ void get_file(int fd, struct cache *cache, char *request_path) {
   // Fetch file from root dir, but firstly , let's check cache.
   snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
   struct cache_entry *entry = cache_get(cache, filepath);
-  if(entry != NULL){
+  if (entry != NULL) {
     // if cache hit
-    send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content,
+                  entry->content_length);
     return;
   }
 
@@ -176,7 +177,6 @@ void get_file(int fd, struct cache *cache, char *request_path) {
  */
 char *find_start_of_body(char *header) {
   // TODO IMPLEMENT ME! (Stretch)
-
 }
 
 /**
