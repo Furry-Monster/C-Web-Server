@@ -154,9 +154,11 @@ void get_file(int fd, struct cache *cache, char *request_path) {
 
   filedata = file_load(filepath);
 
-  // if not found , respond 404
-  if (filedata == NULL)
+  // if not found , respond 404 , and end this function
+  if (filedata == NULL) {
     resp_404(fd);
+    return;
+  }
 
   mime_type = mime_type_get(filepath);
 

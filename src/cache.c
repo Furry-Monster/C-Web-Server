@@ -3,22 +3,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /**
  * Allocate a cache entry
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content,
                                 int content_length) {
+  if (path == NULL || content_type == NULL || content == NULL)
+    return NULL;
+
   // allocate this block
   struct cache_entry *entry = malloc(sizeof *entry);
   // initialize this block
   memset(entry, 0, sizeof *entry);
   // copy data from ptrs
-  entry->path = malloc(strlen(path));
-  memcpy(entry->path, path, strlen(path));
-  entry->content_type = malloc(strlen(content_type));
-  memcpy(entry->content_type, content_type, strlen(content_type));
+  // using size parameter "strlen(...)+1" for char '\0'
+  entry->path = malloc(strlen(path) + 1);
+  entry->content_type = malloc(strlen(content_type) + 1);
   entry->content = malloc(content_length);
+  if (entry->path == NULL || entry->content_type == NULL ||
+      entry->content == NULL) {
+    free(entry);
+    return NULL;
+  }
+
+  memcpy(entry->path, path, strlen(path) + 1);
+  memcpy(entry->content_type, content_type, strlen(content_type) + 1);
   memcpy(entry->content, content, content_length);
   entry->content_length = content_length;
 
@@ -102,8 +113,6 @@ struct cache_entry *dllist_remove_tail(struct cache *cache) {
   cache->tail = oldtail->prev;
   cache->tail->next = NULL;
 
-  cache->cur_size--;
-
   return oldtail;
 }
 
@@ -146,8 +155,14 @@ void cache_free(struct cache *cache) {
  */
 void cache_put(struct cache *cache, char *path, char *content_type,
                void *content, int content_length) {
+  if (cache == NULL || path == NULL || content_type == NULL || content == NULL)
+    return;
+
   struct cache_entry *entry =
       alloc_entry(path, content_type, content, content_length);
+  if (entry == NULL)
+    return;
+
   dllist_insert_head(cache, entry);
   hashtable_put(cache->index, path, entry);
   ++(cache->cur_size);
@@ -164,6 +179,9 @@ void cache_put(struct cache *cache, char *path, char *content_type,
  * Retrieve an entry from the cache
  */
 struct cache_entry *cache_get(struct cache *cache, char *path) {
+  if (cache == NULL || path == NULL)
+    return NULL;
+
   struct cache_entry *entry = hashtable_get(cache->index, path);
   if (entry == NULL)
     return entry;
