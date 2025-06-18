@@ -131,6 +131,14 @@ void resp_404(int fd) {
 }
 
 /**
+ * Send bad request repond
+ */
+void bad_req_resp(int fd) {
+  char *str = "Wtf is this shit request";
+  send_response(fd, "HTTP/1.1 400 Bad Request", "text/plain", str, strlen(str));
+}
+
+/**
  * Read and return a file from disk or cache
  */
 void get_file(int fd, struct cache *cache, char *request_path) {
@@ -177,8 +185,62 @@ void get_file(int fd, struct cache *cache, char *request_path) {
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header) {
-  // TODO IMPLEMENT ME! (Stretch)
+const char *find_start_of_body(char *request, int cpy) {
+  const char *body_start = strstr(request, "\r\n\r\n");
+  if (body_start == NULL)
+    return NULL;
+  body_start += 4; // skip /r/n/r/n sequence
+
+  if (!cpy)
+    return body_start;
+
+  size_t bodylen = strlen(body_start);
+
+  // copy to new block
+  char *body = malloc(bodylen + 1);
+  if (body == NULL) {
+    perror("Memory allocate failed");
+    return NULL;
+  }
+
+  memcpy(body, body_start, bodylen + 1);
+  return body;
+}
+
+void post_save(int fd, const void *body, struct cache *cache,
+               char *request_path) {
+  char filepath[4096];
+  struct file_data *filedata;
+  char *mime = "application/json";
+  char *resp_body = "{\"status\":\"ok\"}";
+
+  // find the server root path first.
+  snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+
+  filedata = file_load(filepath);
+  if (filedata == NULL) {
+    bad_req_resp(fd);
+    return;
+  }
+
+  size_t bodylen = strlen(body);
+  memcpy(filedata->data, body, bodylen);
+  filedata->size = bodylen;
+
+  if (!file_save(filedata)) {
+    file_free(filedata);
+    return;
+  }
+
+  // remember to update cache
+  struct cache_entry *entry = cache_get(cache, request_path);
+  if (entry != NULL) {
+    // set dirty
+  }
+
+  send_response(fd, "HTTP/1.1 200 OK", mime, resp_body, strlen(resp_body));
+
+  file_free(filedata);
 }
 
 /**
