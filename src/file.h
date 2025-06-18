@@ -8,6 +8,7 @@ struct file_data {
 };
 
 extern struct file_data *file_load(char *filename);
+extern int file_modify(struct file_data *filedata, const void *data);
 extern int file_save(struct file_data *filedata);
 extern void file_free(struct file_data *filedata);
 

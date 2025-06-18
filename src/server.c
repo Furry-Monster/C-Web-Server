@@ -222,18 +222,15 @@ void post_save(int fd, const void *body, struct cache *cache,
   // find the server root path first.
   snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
 
+  // modify file
   filedata = file_load(filepath);
   if (filedata == NULL) {
     bad_req_resp(fd);
     return;
   }
+  file_modify(filedata, body);
 
-  // modify file
-  size_t bodylen = strlen(body);
-  memcpy(filedata->data, body, bodylen);
-  filedata->size = bodylen;
-
-  // try to save file
+  // try to save the modify buffering files
   if (!file_save(filedata)) {
     file_free(filedata);
     return;
@@ -243,6 +240,7 @@ void post_save(int fd, const void *body, struct cache *cache,
   struct cache_entry *entry = cache_get(cache, request_path);
   if (entry != NULL) {
     // set dirty
+    entry->dirty = 1;
   }
 
   send_response(fd, "HTTP/1.1 200 OK", mime, resp_body, strlen(resp_body));

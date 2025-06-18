@@ -1,4 +1,5 @@
 #include "file.h"
+#include <bits/types/struct_iovec.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,6 +129,31 @@ int file_save(struct file_data *filedata) {
   }
 
   fclose(fp);
+  return 1;
+}
+
+/**
+ * modify data of the giving file structure
+ *
+ * this function will automatically set the size
+ */
+int file_modify(struct file_data *filedata, const void *data) {
+  void *buffer;
+  size_t data_len = strlen(data);
+
+  // allocate buffer
+  buffer = malloc(data_len);
+  if (buffer == NULL)
+    return 0;
+
+  // copy to buffer, and free the old buffer
+  memcpy(buffer, data, data_len);
+  free(filedata->data);
+
+  // reallocate the filedata
+  filedata->data = buffer;
+  filedata->size = data_len;
+
   return 1;
 }
 
