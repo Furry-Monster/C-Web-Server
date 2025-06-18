@@ -12,7 +12,6 @@ REQUESTS = [
     {"path": "/cat.jpg", "method": "GET", "description": "静态图片"},
     {"path": "/rubbish.txt", "method": "GET", "description": "文本文件"},
     {"path": "/nonexistent", "method": "GET", "description": "404页面"},
-    {"path": "/save", "method": "POST", "description": "修改save文件"},
 ]
 
 
@@ -153,7 +152,7 @@ def run_load_test(total_requests=1000, concurrent_users=50, duration=60):
 if __name__ == "__main__":
     # 可以通过命令行参数配置这些值
     run_load_test(
-        total_requests=5000,  # 总请求数
+        total_requests=50000,  # 总请求数
         concurrent_users=100,  # 并发用户数
         duration=300,  # 最大运行时间（秒）
     )
